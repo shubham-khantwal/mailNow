@@ -1,6 +1,10 @@
 from tkinter import *
 from tkinter import ttk
 
+import smtplib
+from email.mime.text import MIMEText
+import config
+
 class mail:
 
     def __init__(self,root):
@@ -20,11 +24,28 @@ class mail:
         menubar = Menu(root)
         root.config(menu=menubar)
 
+        # get your port number for different service providers such as for yahoo
+        server = smtplib.SMTP('smtp.gmail.com',587) # server url, port number ,587 for gmail
+        server.starttls() # it convert insecure connection into tls or ssl
+        EMAIL = config.EMAIL  # reading email and password from the config python file
+        PASSWORD = config.PASSWORD
+
+        # setting icon
+        self.root.iconbitmap('mail.ico')
+
+        def create_window(): # new window definition
+            root = Tk()
+            newwin = mail(root)
+            root.mainloop()
+
+            
         # CREATE SUBMENU
         submenu = Menu(menubar , tearoff=0)
         menubar.add_cascade(label='FILE',menu=submenu)
-        submenu.add_command(label='New')
+        submenu.add_command(label='New',command=create_window)
         submenu.add_command(label='Exit',command=root.destroy)
+       
+    
 
         # frames
 
@@ -50,6 +71,8 @@ class mail:
         self.fromText = Entry(topFrame,width= 750,font = ('Arial',14,'bold'),textvariable = getFrom,bg = 'lightblue') # we cannot use padding here
         self.fromText.grid(row=0,column=1)
 
+        self.fromText.insert(0,EMAIL)
+
         self.toLabel = Label(topFrame, font = ('Arial',14,'bold'),text='TO : ',padx =10,pady=5,bg='ghost White',width=10)
         self.toLabel.grid(row=1,column=0,sticky = W) # sticky in capital letters
         self.toText = Entry(topFrame,width=750,font = ('Arial',14,'bold'),textvariable = getTo ,bg = 'lightblue') # we cannot use padding here
@@ -69,6 +92,7 @@ class mail:
         self.subjectLabel.grid(row=4,column=0,sticky = W) # sticky in capital letters
         self.subjectText = Entry(topFrame,width=750,font = ('Arial',14,'bold'),textvariable = getSubject,bg = 'lightblue') # we cannot use padding here
         self.subjectText.grid(row=4,column=1)
+        self.fromLabel = EMAIL
 
         # scroll for text in subFrameTOp
 
@@ -80,31 +104,41 @@ class mail:
 
         scrollbar.config(command = self.bodyText.yview)        
 
-        #buttons
-        self.btnAddData = Button(subFrameBottom , text = 'HOME' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5,pady=2)
-        self.btnAddData.grid(row=0,column =0)
 
-        self.btnDisplayData = Button(subFrameBottom , text = 'ATTACH' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5)
-        self.btnDisplayData.grid(row=0,column =1)
+        
+        #buttons
+        self.btnHome = Button(subFrameBottom , text = 'HOME' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5,pady=2)
+        self.btnHome.grid(row=0,column =0)
+
+        self.btnAttach = Button(subFrameBottom , text = 'ATTACH' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5)
+        self.btnAttach.grid(row=0,column =1)
     
 
-        self.btnClearData = Button(subFrameBottom , text = 'DISCARD' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5)
-        self.btnClearData.grid(row=0,column =2)
+        self.btnDiscard = Button(subFrameBottom , text = 'DISCARD' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5)
+        self.btnDiscard.grid(row=0,column =2)
 
-        self.btnDeleteData = Button(subFrameBottom , text = 'SEND' , font=('arial',12,'bold'),height = 1,width=18 ,bd =2,padx=5)
-        self.btnDeleteData.grid(row=0,column =3)
+        def sendData():
+            server.login(EMAIL,PASSWORD)
 
+            message = MIMEText(self.bodyText.get("1.0",END))
+
+            message['FROM'] = self.fromText.get()
+            message['TO'] = self.toText.get()
+            message['subject']= self.subjectText.get()
+            getFrom = self.fromText.get()
+            getTO = self.toText.get()
+            server.sendmail(getFrom,getTO,message.as_string())
+            print('Mail sent')
+            
+        self.btnSend = Button(subFrameBottom , text = 'SEND' , font=('arial',12,'bold'),height = 1,width=18 ,bd =2,padx=5,command = sendData)
+        self.btnSend.grid(row=0,column =3)
+
+        
+        
         self.btnExit = Button(subFrameBottom , text = 'EXIT' , font=('arial',12,'bold'),height = 1,width =11 ,bd =2,padx=5,command = root.destroy)
         self.btnExit.grid(row=0,column =4)
-        
-    def fromCode():
-        pass
-    def toCode():
-        pass
-    def subject():
-        pass
-    def body():
-        pass
+
+
     
 if __name__ == '__main__':
     root = Tk()
